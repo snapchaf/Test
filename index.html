@@ -1,26 +1,63 @@
-<!DOCTYPE html>
-<html lang="en">
+  <script>
+///* Lade alle HTML Inhalte vor dem ausführen des Scripts*///
+document.addEventListener("DOMContentLoaded", () => {
+  
+///* MENU: DROP-DOWN / SUB DROP-DOWN *///
+const menuLogo = document.getElementById("menuLogo");
+const dropdownMenu = document.getElementById("dropdownMenu");
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Untitled</title>
-    <link rel="stylesheet" href="bootstrap.min.css">
-    <link rel="stylesheet" href="Login-Form-Clean.css">
-    <link rel="stylesheet" href="assets/css/styles.css">
-</head>
+// Original- und Close-Icons
+const menuOpenIcon = "Menu.jpeg";       // Hamburger
+const menuCloseIcon = "menu-close.png"; // X-Icon
 
-<body>
-<iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
-    <section class="login-clean">
-        <form method="get" style="background: #faffe4;" target="dummyframe" action="url">
-            <h2 class="visually-hidden">Login Form</h2><img style="padding-left: 35px;width: 200px;padding-bottom: 19px;" src="http://assets.stickpng.com/images/580b57fcd9996e24bc43c536.png">
-            <div class="mb-3"><input class="form-control" type="email" name="email" placeholder="Username"></div>
-            <div class="mb-3"><input class="form-control" type="password" name="password" placeholder="Password"></div>
-            <div class="mb-3"><button class="btn btn-primary d-block w-100" type="submit" style="background: rgb(21,20,14);">Log In</button></div><a class="forgot" href="#">Forgot your email or password?</a>
-        </form>
-    </section>
-    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
-</body>
+menuLogo.addEventListener("click", () => {
+// Overlay ein-/ausblenden
+  dropdownMenu.classList.toggle("show");  // <- DAS ist der entscheidende Teil
 
-</html>
+// Logo wechseln
+  if (dropdownMenu.classList.contains("show")) {
+    menuLogo.src = menuCloseIcon;  // X-Icon
+  } else {
+    menuLogo.src = menuOpenIcon;   // Hamburger
+  }
+});
+    
+// Untermenüs steuern
+const submenuItems = document.querySelectorAll(".overlay-item.has-submenu");
+submenuItems.forEach((item, index) => {
+  const submenu = item.nextElementSibling;
+  
+// Sicherheitscheck ob nextElementSibling ein submenu ist
+    if (!submenu || !submenu.classList.contains("submenu")) return;
+  
+  const subId = "sub" + (index + 1);       // sub1, sub2, ...
+  item.dataset.target = subId;
+  submenu.id = subId;
+  
+    item.addEventListener("click", e => {
+    e.preventDefault(); // wenn kein eigener Link, sonst optional
+      
+    const targetMenu = document.getElementById(item.dataset.target);
+    if (!targetMenu) return;
+
+    //alle anderen Submenu schließen
+    document.querySelectorAll(".submenu").forEach(sub => {
+      if (sub !== targetMenu) sub.classList.remove("open");
+});
+
+// Dieses Untermenü ein-/ausblenden
+    targetMenu.classList.toggle("open");
+  });
+});
+
+// Menü schließen, wenn außerhalb geklickt wird
+window.addEventListener("click", e => {
+  if (!dropdownMenu || !menuLogo) return;
+  
+  if (!dropdownMenu.contains(e.target) && !menuLogo.contains(e.target)) {
+    dropdownMenu.classList.remove("show");
+    document.querySelectorAll(".submenu").forEach(sub => sub.classList.remove("open"));
+    submenuItems.forEach(item => item.classList.remove("open"));
+  }
+});
+  });
