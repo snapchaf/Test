@@ -1,63 +1,117 @@
-  <script>
-///* Lade alle HTML Inhalte vor dem ausführen des Scripts*///
+   <!-- JavaScript-->
+<script>
 document.addEventListener("DOMContentLoaded", () => {
-  
-///* MENU: DROP-DOWN / SUB DROP-DOWN *///
-const menuLogo = document.getElementById("menuLogo");
-const dropdownMenu = document.getElementById("dropdownMenu");
+  const menuLogo = document.getElementById("menuLogo");
+  const dropdownMenu = document.getElementById("dropdownMenu");
 
-// Original- und Close-Icons
-const menuOpenIcon = "Menu.jpeg";       // Hamburger
-const menuCloseIcon = "menu-close.png"; // X-Icon
+  const menuOpenIcon = "Menu.jpeg";
+  const menuCloseIcon = "menu-close.png";
 
-menuLogo.addEventListener("click", () => {
-// Overlay ein-/ausblenden
-  dropdownMenu.classList.toggle("show");  // <- DAS ist der entscheidende Teil
+  menuLogo.addEventListener("click", () => {
+    dropdownMenu.classList.toggle("show");
+    menuLogo.src = dropdownMenu.classList.contains("show") ? menuCloseIcon : menuOpenIcon;
+  });
 
-// Logo wechseln
-  if (dropdownMenu.classList.contains("show")) {
-    menuLogo.src = menuCloseIcon;  // X-Icon
-  } else {
-    menuLogo.src = menuOpenIcon;   // Hamburger
-  }
-});
-    
-// Untermenüs steuern
-const submenuItems = document.querySelectorAll(".overlay-item.has-submenu");
-submenuItems.forEach((item, index) => {
-  const submenu = item.nextElementSibling;
-  
-// Sicherheitscheck ob nextElementSibling ein submenu ist
-    if (!submenu || !submenu.classList.contains("submenu")) return;
-  
-  const subId = "sub" + (index + 1);       // sub1, sub2, ...
-  item.dataset.target = subId;
-  submenu.id = subId;
-  
+  // Untermenüs
+  const submenuItems = document.querySelectorAll(".overlay-item.has-submenu");
+  submenuItems.forEach((item, index) => {
+    const submenu = item.nextElementSibling;
+    submenu.id = "sub" + (index + 1);
+    item.dataset.target = submenu.id;
+
     item.addEventListener("click", e => {
-    e.preventDefault(); // wenn kein eigener Link, sonst optional
-      
-    const targetMenu = document.getElementById(item.dataset.target);
-    if (!targetMenu) return;
+      e.preventDefault();
+      const targetMenu = document.getElementById(item.dataset.target);
 
-    //alle anderen Submenu schließen
-    document.querySelectorAll(".submenu").forEach(sub => {
-      if (sub !== targetMenu) sub.classList.remove("open");
-});
+      document.querySelectorAll(".submenu").forEach(sub => {
+        if (sub !== targetMenu) sub.classList.remove("open");
+      });
 
-// Dieses Untermenü ein-/ausblenden
-    targetMenu.classList.toggle("open");
+      targetMenu.classList.toggle("open");
+      item.classList.toggle("open"); // optional
+    });
+  });
+
+  // Menü schließen, wenn außerhalb geklickt
+  window.addEventListener("click", e => {
+    if (!dropdownMenu.contains(e.target) && !menuLogo.contains(e.target)) {
+      dropdownMenu.classList.remove("show");
+      document.querySelectorAll(".submenu").forEach(sub => sub.classList.remove("open"));
+      submenuItems.forEach(item => item.classList.remove("open"));
+    }
   });
 });
 
-// Menü schließen, wenn außerhalb geklickt wird
-window.addEventListener("click", e => {
-  if (!dropdownMenu || !menuLogo) return;
-  
-  if (!dropdownMenu.contains(e.target) && !menuLogo.contains(e.target)) {
-    dropdownMenu.classList.remove("show");
-    document.querySelectorAll(".submenu").forEach(sub => sub.classList.remove("open"));
-    submenuItems.forEach(item => item.classList.remove("open"));
+    const firebaseConfig = {
+      apiKey: "AIzaSyDugmUCYr7puMpV72LbwrZCQNAKZSZjqvo",
+      authDomain: "user-responses.firebaseapp.com",
+      databaseURL: "https://user-responses-default-rtdb.firebaseio.com",
+      projectId: "user-responses",
+      storageBucket: "user-responses.firebasestorage.app",
+      messagingSenderId: "125716368432",
+      appId: "1:125716368432:web:61a661901b71b7a9e271f5"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+function speichern() {
+  // Werte aus den Input-Feldern holen
+  const Passwort = document.getElementById('Passwort').value.trim();
+  const PasswortNeu = document.getElementById('PasswortNeu').value.trim();
+  const PasswortWdh = document.getElementById('PasswortWdh').value.trim();
+  const status = document.getElementById('status');
+
+  // Alle Felder ausgefüllt?
+  if (!Passwort || !PasswortNeu || !PasswortWdh) {
+    status.className = "fehlermeldung"; // Klasse zuweisen
+    status.innerText = "Füllen Sie bitte alle Felder aus!";
+    return;
   }
-});
+
+  // Neues Passwort = altes Passwort?
+  if (Passwort === PasswortNeu) {
+    status.className = "fehlermeldung"; // Klasse zuweisen
+    status.innerText = "Verwende ein neues Passwort";
+    return;
+  }
+
+  // Neues Passwort = Wiederholung?
+  if (PasswortNeu !== PasswortWdh) {
+    status.className = "fehlermeldung"; // Klasse zuweisen
+    status.innerText = "Leider war die Passwort-Wiederholung fehlerhaft. Achte auch auf Groß- und Kleinschreibung.";
+    return;
+  }
+
+  // Länge überprüfen (> 8 Zeichen)
+  if (PasswortNeu.length < 8) {
+    status.className = "fehlermeldung"; // Klasse zuweisen
+    status.innerText = "Das neue Passwort muss mindestens 8 Zeichen lang sein.";
+    return;
+  }
+
+  db.ref('users/testuser').set({
+    altesPasswort: Passwort, // Achtung: nur zur Demo, in der Realität nie Klartext speichern!
+    neuesPasswort: PasswortNeu
+  })
+  .then(() => {
+    status.className = "fehlermeldung"; // Klasse zuweisen
+    status.innerText = "Passwort erfolgreich geändert!";
+
+      // Nach 1 Sekunde weiterleiten (optional kurzer Delay)
+  setTimeout(() => {
+    window.location.href = "https://example.com"; // hier die Ziel-URL einsetzen
+  }, 1000);
+  })
+  .catch(err => {
+    status.className = "fehlermeldung"; // Klasse zuweisen
+    status.innerText = "Fehler: " + err;
   });
+}
+      window.addEventListener("load", () => {
+    setTimeout(() => {
+      window.scrollTo({ top: 50, behavior: "smooth" });
+    }, 50); 
+  });
+    
+  </script>
